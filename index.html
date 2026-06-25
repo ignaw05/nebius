@@ -218,12 +218,6 @@
 
   <!-- Carga de la causa -->
   <div class="intake" id="intake">
-    <div class="keyfield">
-      <label for="key">Gemini API key
-        <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">conseguir una</a>
-      </label>
-      <input id="key" type="password" placeholder="AIza…" autocomplete="off" spellcheck="false" />
-    </div>
     <label for="op">Presentá tu opinión ante el tribunal</label>
     <textarea id="op" placeholder="Ej: la pizza con ananá está buena…" maxlength="220"></textarea>
     <div class="chips" id="chips"></div>
@@ -386,11 +380,10 @@ const SCHEMA = {
   required:["categoria","basado_score","veredicto","percentil","votos_a_favor","votos_en_contra","sentencia","agravante","pena"]
 };
 
-const getKey = () => document.getElementById("key").value.trim();
+const API_KEY = "AIzaSyAfHZMSVQxG7LeYNrpTUg-4qoZiEqkkxgA";
 
 async function fallar(opinion){
-  const key = getKey();
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=AIzaSyAfHZMSVQxG7LeYNrpTUg-4qoZiEqkkxgA`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${API_KEY}`;
   const res = await fetch(url,{
     method:"POST",
     headers:{"Content-Type":"application/json"},
@@ -458,11 +451,6 @@ function renderFallo(f, opinion){
 
 async function onGo(){
   const opinion=$("op").value.trim();
-  if(!getKey()){
-    const err=$("err");
-    err.textContent="Pegá tu API key de Gemini para que el tribunal pueda sesionar.";
-    err.classList.add("on"); $("key").focus(); return;
-  }
   if(!opinion){ $("op").focus(); return; }
   setLoading(true);
   try{
