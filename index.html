@@ -1,0 +1,505 @@
+<!-- Tribunal Supremo de Opiniones Polémicas -->
+<!-- App de IA (Gemini): una opinión entra, un fallo oficial sale. Listo para screenshot. -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,500&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+  :root{
+    --bg:#591820;          /* bordó institucional (la marca) */
+    --bg-deep:#43121a;
+    --paper:#ece2cb;       /* papel de expediente */
+    --paper-edge:#ddd0b2;
+    --ink:#241c16;
+    --ink-soft:#5b4c3c;
+    --gold:#a9842f;
+    --gold-bright:#c79a3c;
+    --basado:#2c6a4a;
+    --terrible:#a32626;
+    --mid:#8a6d2a;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:
+      radial-gradient(120% 90% at 50% -10%, var(--bg) 0%, var(--bg-deep) 70%);
+    color:var(--paper);
+    font-family:"Spectral",Georgia,serif;
+    min-height:100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:28px 16px 60px;
+  }
+  .wrap{width:100%;max-width:520px}
+
+  /* Encabezado del tribunal */
+  .crest{text-align:center;margin-bottom:18px}
+  .gavel{font-size:30px;line-height:1;filter:saturate(0.6)}
+  .crest h1{
+    font-family:"DM Serif Display",Georgia,serif;
+    font-weight:400;
+    font-size:clamp(22px,6.5vw,30px);
+    letter-spacing:.5px;
+    margin:6px 0 2px;
+    line-height:1.06;
+  }
+  .crest .sub{
+    font-size:11px;letter-spacing:3px;text-transform:uppercase;
+    color:var(--gold-bright);opacity:.85;
+  }
+  .crest .rule{
+    width:54px;height:2px;background:var(--gold);margin:10px auto 0;opacity:.7
+  }
+
+  /* Panel de carga de la causa */
+  .intake{
+    background:rgba(0,0,0,.16);
+    border:1px solid rgba(201,162,75,.28);
+    border-radius:14px;
+    padding:18px 16px 16px;
+  }
+  .intake label{
+    display:block;font-size:11px;letter-spacing:2px;text-transform:uppercase;
+    color:var(--gold-bright);margin-bottom:9px;
+  }
+  .keyfield{margin-bottom:14px}
+  .keyfield label{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .keyfield a{color:var(--gold-bright);font-size:10px;letter-spacing:.5px;text-transform:none;white-space:nowrap}
+  .keyfield input{
+    width:100%;margin-top:8px;background:rgba(0,0,0,.22);color:var(--paper);
+    border:1px solid rgba(201,162,75,.3);border-radius:8px;padding:10px 12px;
+    font-family:"Spectral",serif;font-size:14px;
+  }
+  .keyfield input:focus{outline:2px solid var(--gold);outline-offset:1px}
+  textarea{
+    width:100%;min-height:84px;resize:vertical;
+    background:var(--paper);color:var(--ink);
+    border:1px solid var(--paper-edge);border-radius:10px;
+    padding:13px 14px;font-family:"Spectral",Georgia,serif;
+    font-size:17px;line-height:1.35;
+  }
+  textarea:focus{outline:2px solid var(--gold);outline-offset:1px}
+  textarea::placeholder{color:#9a8a72}
+
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0 4px}
+  .chip{
+    font:inherit;font-size:13px;cursor:pointer;
+    background:transparent;color:var(--paper);
+    border:1px solid rgba(201,162,75,.4);border-radius:999px;
+    padding:6px 11px;line-height:1.1;transition:.15s;
+  }
+  .chip:hover{background:rgba(201,162,75,.16);border-color:var(--gold)}
+
+  .btn{
+    width:100%;margin-top:14px;cursor:pointer;
+    font-family:"DM Serif Display",Georgia,serif;font-size:18px;
+    color:#2a1208;background:linear-gradient(180deg,var(--gold-bright),var(--gold));
+    border:none;border-radius:10px;padding:13px;letter-spacing:.3px;
+    box-shadow:0 2px 0 #6f5316;transition:transform .08s, box-shadow .08s;
+  }
+  .btn:hover{transform:translateY(1px);box-shadow:0 1px 0 #6f5316}
+  .btn:disabled{opacity:.6;cursor:wait}
+
+  /* Estado deliberando */
+  .deliberando{display:none;text-align:center;padding:34px 10px;color:var(--paper)}
+  .deliberando.on{display:block}
+  .deliberando .g{font-size:38px;animation:knock 1s ease-in-out infinite}
+  .deliberando p{font-family:"DM Serif Display",serif;font-size:19px;margin:12px 0 0}
+  @keyframes knock{0%,100%{transform:rotate(-18deg)}45%{transform:rotate(6deg)}55%{transform:rotate(6deg)}}
+
+  /* ===== La CARD / fallo ===== */
+  .card{
+    display:none;position:relative;margin-top:4px;
+    background:
+      linear-gradient(180deg,#f1e8d2,var(--paper));
+    color:var(--ink);
+    border-radius:6px;
+    padding:24px 22px 20px;
+    box-shadow:0 18px 40px rgba(0,0,0,.4), inset 0 0 0 1px rgba(150,120,70,.25);
+  }
+  .card.on{display:block;animation:rise .5s cubic-bezier(.2,.8,.2,1)}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .card::after{ /* textura sutil de papel */
+    content:"";position:absolute;inset:0;border-radius:6px;pointer-events:none;
+    background:radial-gradient(120% 80% at 90% 0%, rgba(120,90,40,.07), transparent 60%);
+  }
+
+  .doc-top{display:flex;justify-content:space-between;align-items:baseline;
+    font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft)}
+  .doc-top .cat{color:#7a5d1f;font-weight:600}
+
+  .opinion{
+    font-family:"DM Serif Display",Georgia,serif;
+    font-size:clamp(20px,5.4vw,25px);line-height:1.22;
+    margin:12px 0 4px;
+  }
+  .opinion .q{color:var(--gold)}
+
+  .hr{height:1px;background:linear-gradient(90deg,transparent,rgba(120,90,40,.45),transparent);margin:16px 0}
+
+  .verdict-row{display:flex;gap:18px;align-items:center}
+  .seal{flex:0 0 116px;width:116px;height:116px;position:relative}
+  .seal svg{width:100%;height:100%;display:block}
+  .seal .score{
+    position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+  }
+  .seal .num{font-family:"DM Serif Display",serif;font-size:38px;line-height:.9;color:#3c2c10}
+  .seal .lbl{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:#7a5d1f;margin-top:2px}
+
+  .verdict-meta{flex:1;min-width:0}
+  .stamp{
+    display:inline-block;font-family:"DM Serif Display",serif;
+    font-size:clamp(26px,8vw,34px);line-height:1;
+    padding:4px 12px;border:3px solid currentColor;border-radius:7px;
+    transform:rotate(-5deg);letter-spacing:1px;text-transform:uppercase;
+  }
+  .stamp.on{animation:slam .45s cubic-bezier(.2,1.4,.3,1) both}
+  @keyframes slam{0%{transform:rotate(-5deg) scale(2.4);opacity:0}
+    60%{transform:rotate(-5deg) scale(.92);opacity:1}100%{transform:rotate(-5deg) scale(1)}}
+  .percentil{font-size:13.5px;color:var(--ink-soft);margin-top:11px;font-style:italic}
+  .votos{font-size:13px;color:var(--ink-soft);margin-top:5px}
+  .votos b{color:var(--ink)}
+
+  /* Medidor */
+  .meter{margin:18px 0 4px}
+  .meter .scale{position:relative;height:11px;border-radius:6px;
+    background:linear-gradient(90deg,var(--terrible),var(--mid) 50%,var(--basado));
+    box-shadow:inset 0 1px 2px rgba(0,0,0,.25)}
+  .meter .pin{position:absolute;top:-5px;width:4px;height:21px;background:var(--ink);
+    border-radius:2px;transform:translateX(-2px);box-shadow:0 0 0 2px var(--paper)}
+  .meter .ends{display:flex;justify-content:space-between;font-size:10px;
+    letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);margin-top:6px}
+
+  .sentencia{margin:16px 0 0;font-size:16.5px;line-height:1.45}
+  .sentencia .h{font-size:10.5px;letter-spacing:2px;text-transform:uppercase;
+    color:#7a5d1f;display:block;margin-bottom:5px}
+  .extra{display:flex;gap:14px;margin-top:14px;font-size:12.5px;color:var(--ink-soft)}
+  .extra > div{flex:1}
+  .extra .k{text-transform:uppercase;letter-spacing:1px;font-size:9.5px;color:#7a5d1f}
+  .extra .v{color:var(--ink);margin-top:2px;line-height:1.3}
+
+  .sign{display:flex;justify-content:space-between;align-items:flex-end;
+    margin-top:18px;padding-top:12px;border-top:1px dashed rgba(120,90,40,.4)}
+  .sign .firma{font-family:"DM Serif Display",serif;font-style:italic;font-size:17px;color:#3c2c10}
+  .sign .firma small{display:block;font-family:"Spectral",serif;font-style:normal;
+    font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--ink-soft);margin-top:2px}
+  .sign .exp{font-size:10px;letter-spacing:1px;color:var(--ink-soft);text-align:right}
+
+  .actions{display:none;gap:10px;margin-top:16px}
+  .actions.on{display:flex}
+  .actions button{flex:1;cursor:pointer;font-family:"Spectral",serif;font-weight:600;
+    font-size:14px;padding:11px;border-radius:9px;border:1px solid rgba(201,162,75,.5);
+    background:transparent;color:var(--paper);transition:.15s}
+  .actions button:hover{background:rgba(201,162,75,.15)}
+  .actions .primary{background:var(--gold);color:#2a1208;border-color:var(--gold)}
+
+  .err{display:none;margin-top:14px;text-align:center;color:#f0c9c9;font-size:14px}
+  .err.on{display:block}
+
+  .foot{text-align:center;font-size:10.5px;color:rgba(255,255,255,.4);margin-top:22px;letter-spacing:.5px}
+
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none !important}
+  }
+</style>
+
+<div class="wrap">
+  <div class="crest">
+    <div class="gavel">⚖️</div>
+    <h1>Tribunal Supremo<br>de Opiniones Polémicas</h1>
+    <div class="sub">República del Internet</div>
+    <div class="rule"></div>
+  </div>
+
+  <!-- Carga de la causa -->
+  <div class="intake" id="intake">
+    <div class="keyfield">
+      <label for="key">Gemini API key
+        <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">conseguir una</a>
+      </label>
+      <input id="key" type="password" placeholder="AIza…" autocomplete="off" spellcheck="false" />
+    </div>
+    <label for="op">Presentá tu opinión ante el tribunal</label>
+    <textarea id="op" placeholder="Ej: la pizza con ananá está buena…" maxlength="220"></textarea>
+    <div class="chips" id="chips"></div>
+    <button class="btn" id="go">Dictar sentencia</button>
+  </div>
+
+  <!-- Deliberando -->
+  <div class="deliberando" id="loading">
+    <div class="g">⚖️</div>
+    <p id="loadmsg">El tribunal delibera…</p>
+  </div>
+
+  <!-- El fallo -->
+  <div class="card" id="card">
+    <div class="doc-top">
+      <span>Fallo del tribunal</span>
+      <span class="cat" id="cat">—</span>
+    </div>
+
+    <div class="opinion"><span class="q">«</span><span id="opTxt"></span><span class="q">»</span></div>
+
+    <div class="hr"></div>
+
+    <div class="verdict-row">
+      <div class="seal">
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <defs>
+            <path id="ring" d="M60,60 m-46,0 a46,46 0 1,1 92,0 a46,46 0 1,1 -92,0" />
+          </defs>
+          <circle cx="60" cy="60" r="56" fill="none" stroke="#a9842f" stroke-width="1.5" opacity=".7"/>
+          <circle cx="60" cy="60" r="50" fill="none" stroke="#a9842f" stroke-width="3"/>
+          <circle cx="60" cy="60" r="34" fill="none" stroke="#a9842f" stroke-width="1" opacity=".6"/>
+          <text font-family="Spectral, serif" font-size="8.4" letter-spacing="2.4" fill="#7a5d1f">
+            <textPath href="#ring" startOffset="0%">· TRIBUNAL SUPREMO DE OPINIONES · REPÚBLICA DEL INTERNET </textPath>
+          </text>
+        </svg>
+        <div class="score">
+          <div class="num" id="score">0</div>
+          <div class="lbl">Puntos Basado</div>
+        </div>
+      </div>
+
+      <div class="verdict-meta">
+        <div class="stamp" id="stamp" style="color:var(--mid)">—</div>
+        <div class="percentil" id="percentil"></div>
+        <div class="votos" id="votos"></div>
+      </div>
+    </div>
+
+    <div class="meter">
+      <div class="scale"><div class="pin" id="pin" style="left:0%"></div></div>
+      <div class="ends"><span>Crimen</span><span>Basado</span></div>
+    </div>
+
+    <div class="sentencia">
+      <span class="h">Sentencia</span>
+      <span id="sentencia"></span>
+    </div>
+
+    <div class="extra">
+      <div><div class="k">Agravante</div><div class="v" id="agravante"></div></div>
+      <div><div class="k">Pena</div><div class="v" id="pena"></div></div>
+    </div>
+
+    <div class="sign">
+      <div class="firma">El Tribunal<small>Firma y sello oficial</small></div>
+      <div class="exp" id="exp"></div>
+    </div>
+  </div>
+
+  <div class="actions" id="actions">
+    <button id="again">Otra opinión</button>
+    <button class="primary" id="download">Descargar imagen</button>
+  </div>
+
+  <div class="err" id="err"></div>
+
+  <div class="foot">Institución ficticia. Los fallos son humor, no jurisprudencia.</div>
+</div>
+
+<script>
+const EJEMPLOS = [
+  "La pizza con ananá está buena",
+  "El asado se come con cuchillo y tenedor",
+  "El mate lavado es totalmente válido",
+  "Trabajar desde casa baja la productividad",
+  "Messi está sobrevalorado",
+  "El dulce de leche es mejor que el chocolate"
+];
+
+const SYSTEM = `Sos el juez del TRIBUNAL SUPREMO DE OPINIONES POLÉMICAS, una institución ficticia y graciosa de internet. Te llega una opinión y dictás un fallo.
+
+TONO: rioplatense (Argentina), ingenioso, filoso pero divertido. Roasteás la OPINIÓN, jamás a personas ni a grupos. Específico y picante, nunca genérico. Cero insultos hacia el usuario.
+
+SEGURIDAD (innegociable): si la opinión es discriminatoria, odiosa, peligrosa, promueve daño real o apunta contra un colectivo, el tribunal SE DECLARA INCOMPETENTE: veredicto "INADMISIBLE", basado_score 0, y una sentencia graciosa que la rechaza SIN reproducir ni defender el contenido (ej: "El tribunal no entiende en causas de mala leche; archívese"). Todo debe ser seguro para compartir en público.
+
+ESCALA según basado_score:
+85-100 => "BASADO" (verdad incómoda, opinión sólida)
+60-84  => "FACTS" (tiene razón pero es obvio o tibio)
+40-59  => "MID" (opinión de ascensor, ni fu ni fa)
+15-39  => "TERRIBLE" (mal gusto, pero gracioso)
+0-14   => "CRIMEN" (atentado, indefendible)
+y "INADMISIBLE" solo para los casos de seguridad.
+
+Respondé ÚNICAMENTE con un objeto JSON válido. Sin markdown, sin comillas triples, sin texto antes ni después. Claves EXACTAS:
+{
+ "categoria": "etiqueta corta del tipo de opinión, ej 'Crimen gastronómico' o 'Hot take futbolero'",
+ "basado_score": entero 0-100,
+ "veredicto": "BASADO | FACTS | MID | TERRIBLE | CRIMEN | INADMISIBLE",
+ "percentil": "frase corta de ranking, ej 'Top 3% más polémico del país'",
+ "votos_a_favor": entero 0-7,
+ "votos_en_contra": entero 0-7 (a_favor + en_contra debe sumar 7),
+ "sentencia": "el fallo principal, 2 a 3 frases, humor rioplatense, filoso",
+ "agravante": "un detalle gracioso extra, 1 frase corta",
+ "pena": "condena simbólica graciosa y muy corta, ej '3 semanas sin opinar en el grupo'"
+}`;
+
+const $ = id => document.getElementById(id);
+const VERDICT_COLOR = {
+  BASADO:"var(--basado)", FACTS:"var(--basado)", MID:"var(--mid)",
+  TERRIBLE:"var(--terrible)", CRIMEN:"var(--terrible)", INADMISIBLE:"#6a6a6a"
+};
+const LOAD_MSGS = ["El tribunal delibera…","Revisando jurisprudencia…","Convocando al jurado…","Tomando juramento…"];
+
+// chips de ejemplo
+const chips = $("chips");
+EJEMPLOS.forEach(t=>{
+  const b=document.createElement("button");
+  b.className="chip";b.type="button";b.textContent=t;
+  b.onclick=()=>{ $("op").value=t; $("op").focus(); };
+  chips.appendChild(b);
+});
+
+let loadTimer;
+function setLoading(on){
+  $("loading").classList.toggle("on",on);
+  $("go").disabled=on;
+  if(on){
+    let i=0; $("loadmsg").textContent=LOAD_MSGS[0];
+    loadTimer=setInterval(()=>{ i=(i+1)%LOAD_MSGS.length; $("loadmsg").textContent=LOAD_MSGS[i]; },1200);
+  } else clearInterval(loadTimer);
+}
+
+const GEMINI_MODEL = "gemini-2.5-flash";
+
+// Esquema para forzar JSON estructurado y confiable
+const SCHEMA = {
+  type:"object",
+  properties:{
+    categoria:{type:"string"},
+    basado_score:{type:"integer"},
+    veredicto:{type:"string", enum:["BASADO","FACTS","MID","TERRIBLE","CRIMEN","INADMISIBLE"]},
+    percentil:{type:"string"},
+    votos_a_favor:{type:"integer"},
+    votos_en_contra:{type:"integer"},
+    sentencia:{type:"string"},
+    agravante:{type:"string"},
+    pena:{type:"string"}
+  },
+  required:["categoria","basado_score","veredicto","percentil","votos_a_favor","votos_en_contra","sentencia","agravante","pena"]
+};
+
+const getKey = () => document.getElementById("key").value.trim();
+
+async function fallar(opinion){
+  const key = getKey();
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=AIzaSyAfHZMSVQxG7LeYNrpTUg-4qoZiEqkkxgA`;
+  const res = await fetch(url,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({
+      systemInstruction:{ parts:[{ text: SYSTEM }] },
+      contents:[{ role:"user", parts:[{ text: opinion }] }],
+      generationConfig:{
+        temperature:0.9,
+        maxOutputTokens:700,
+        responseMimeType:"application/json",
+        responseSchema: SCHEMA
+      }
+    })
+  });
+  if(!res.ok){
+    const t = await res.text().catch(()=> "");
+    console.error("Gemini error", res.status, t);
+    throw new Error("HTTP "+res.status);
+  }
+  const data = await res.json();
+  const text = (data?.candidates?.[0]?.content?.parts || []).map(p=>p.text||"").join("");
+  const clean = text.replace(/```json/gi,"").replace(/```/g,"").trim();
+  return JSON.parse(clean);
+}
+
+function animateScore(target){
+  const el=$("score"); let cur=0;
+  const step=Math.max(1,Math.round(target/28));
+  const t=setInterval(()=>{ cur+=step; if(cur>=target){cur=target;clearInterval(t);} el.textContent=cur; },22);
+}
+
+function renderFallo(f, opinion){
+  $("intake").style.display="none";
+  $("err").classList.remove("on");
+  $("opTxt").textContent = opinion;
+  $("cat").textContent = f.categoria || "Opinión";
+  $("percentil").textContent = f.percentil || "";
+  const af=f.votos_a_favor??4, en=f.votos_en_contra??3;
+  $("votos").innerHTML = `Jurado: <b>${af}</b> a favor · <b>${en}</b> en contra`;
+  $("sentencia").textContent = f.sentencia || "";
+  $("agravante").textContent = f.agravante || "—";
+  $("pena").textContent = f.pena || "—";
+  const exp = String(Math.floor(1000+Math.random()*8999));
+  const fecha = new Date().toLocaleDateString("es-AR",{day:"2-digit",month:"2-digit",year:"numeric"});
+  $("exp").innerHTML = `Expte. N° ${exp}/${new Date().getFullYear()}<br>${fecha}`;
+
+  const v = (f.veredicto||"MID").toUpperCase();
+  const stamp=$("stamp");
+  stamp.textContent = v;
+  stamp.style.color = VERDICT_COLOR[v] || "var(--mid)";
+
+  const score = Math.max(0,Math.min(100, f.basado_score??50));
+  $("pin").style.left = score+"%";
+
+  $("card").classList.add("on");
+  $("actions").classList.add("on");
+
+  // animaciones del momento
+  requestAnimationFrame(()=>{
+    animateScore(score);
+    stamp.classList.remove("on"); void stamp.offsetWidth; stamp.classList.add("on");
+  });
+  $("card").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+async function onGo(){
+  const opinion=$("op").value.trim();
+  if(!getKey()){
+    const err=$("err");
+    err.textContent="Pegá tu API key de Gemini para que el tribunal pueda sesionar.";
+    err.classList.add("on"); $("key").focus(); return;
+  }
+  if(!opinion){ $("op").focus(); return; }
+  setLoading(true);
+  try{
+    const f = await fallar(opinion);
+    setLoading(false);
+    renderFallo(f, opinion);
+  }catch(e){
+    setLoading(false);
+    const err=$("err");
+    err.textContent="El tribunal entró en cuarto intermedio. Probá de nuevo en un momento.";
+    err.classList.add("on");
+  }
+}
+
+$("go").onclick=onGo;
+$("op").addEventListener("keydown",e=>{ if((e.metaKey||e.ctrlKey)&&e.key==="Enter") onGo(); });
+
+$("again").onclick=()=>{
+  $("card").classList.remove("on");
+  $("actions").classList.remove("on");
+  $("intake").style.display="block";
+  $("op").value=""; $("op").focus();
+  window.scrollTo({top:0,behavior:"smooth"});
+};
+
+$("download").onclick=async()=>{
+  const btn=$("download"); const prev=btn.textContent; btn.textContent="Generando…";
+  try{
+    const canvas=await html2canvas($("card"),{scale:2,backgroundColor:null,useCORS:true});
+    const a=document.createElement("a");
+    a.download="fallo-tribunal.png";
+    a.href=canvas.toDataURL("image/png");
+    a.click();
+  }catch(e){
+    btn.textContent="Sacá un screenshot 📸";
+    setTimeout(()=>btn.textContent=prev,2200); return;
+  }
+  btn.textContent=prev;
+};
+</script>
