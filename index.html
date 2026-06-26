@@ -361,7 +361,7 @@ function setLoading(on){
   } else clearInterval(loadTimer);
 }
 
-const GEMINI_MODEL = "gemini-2.5-flash";
+const GEMINI_MODEL = "gemini-3.1-flash-lite";
 
 // Esquema para forzar JSON estructurado y confiable
 const SCHEMA = {
@@ -380,7 +380,7 @@ const SCHEMA = {
   required:["categoria","basado_score","veredicto","percentil","votos_a_favor","votos_en_contra","sentencia","agravante","pena"]
 };
 
-const API_KEY = "AIzaSyAfHZMSVQxG7LeYNrpTUg-4qoZiEqkkxgA";
+const API_KEY = "AIzaSyAkzP14bO92TNTcQ6veLldWSuwHby_FV5I";
 
 async function fallar(opinion){
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${API_KEY}`;
